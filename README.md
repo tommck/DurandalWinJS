@@ -1,4 +1,7 @@
-# Writing WinJS apps with DurandalJS - Part 1#
+# Writing WinJS apps with DurandalJS on Windows 8.1 #
+[Durandal](http://durandaljs.com "Durandal") is a popular Single Page Application (SPA) framework for web development. I recently had the need to develop a WinJS project for Windows 8.1 and wanted to make use of our existing in-house Durandal expertise, so we used Durandal.
+
+In this article, We'll go over what's needed to get the Durandal Starter Kit running in a WinJS application. 
 
 ## Tools Used ##
 * Visual Studio 2013
@@ -15,7 +18,7 @@ _Choose the "Blank" template and deselect any optional features, since this is a
 	* From there, make sure the "Default Project" is set to "DurandalWeb" and type ``Install-Package Durandal.StarterKit``  ![](http://i.imgur.com/VE7Eax4.png)
 	
 After the package manager has installed the Starter Kit and all it's dependencies, we need to drag the "App" folder from the Web project to the WinJS project (just drop it on the project name, which places it in the root)
-Now, we need to install all the non-ASP.NET Package Dependencies for the Starter Kit.  These are: Boostrap, FontAwesome, Durandal and Durandal.Transitions. So, run the following commands in the Package Manager Console (Don't forget to set the default package to "DurandalWinJS")
+After that, we need to install all the non-ASP.NET Package Dependencies for the Starter Kit.  These are: Boostrap, FontAwesome, Durandal and Durandal.Transitions. So, run the following commands in the Package Manager Console (Don't forget to set the default package to "DurandalWinJS")
 * ``Install-Package bootstrap``
 * ``Install-Package FontAwesome``
 * ``Install-Package Durandal``
@@ -126,7 +129,7 @@ Notice the line that says ``args.setPromise(WinJS.UI.processAll());``.  This is 
 
 > WARNING: If you are not intimately familiar with the concept of Promises in JavaScript, you should familiarize yourself with it.  Almost everything in WinJS/WinRT is asynchronous, which means Promises in JavaScript.
 
-OK, so if we replace that line with the following lines, it should do it:
+OK, so if we replace that line with the following lines, we should be in good shape:
 
     args.setPromise(
         WinJS.UI.processAll()
@@ -148,15 +151,15 @@ Unfortunately, the Flickr tab will not work ever. You will see errors like:
     APPHOST9601: Can’t load <http://api.flickr.com/...
 	An app can’t load remote web content in the local context.
 
-This is a security issue. Remote content cannot be loaded and displayed in a WinJS application. This is a security limitation. If the application has permissions, it can download the content, then display it, but it can't pull it from the server directly.
+This is a security issue. Remote content cannot be loaded and _directly_ displayed in a WinJS application. This is a security limitation. If the application has permissions, it can download the content, then display it, but it can't pull it from the server directly (i.e. `<img src="http://some.internet.site/foo.png />`)
 
 ### Templates ###
 Simple data binding works fine, but templates present a problem.  Dynamically creating HTML and injecting it into an application is a potential security hole. Since we need to be able to do this occasionally, Microsoft provided a method to tell the runtime that it's OK.  This method is called ``MSApp.execUnsafeLocalFunction()``
 
-First, we'll make it fail
+First, we'll make it fail.
 
 #### Making it Fail ####
-We'll replace the Flickr view with another dummy view with simple data binding. So, we'll rename flickr.* to dummy.* and simplify it.  Here are the contents of the files now:
+We'll replace the Flickr view with another dummy view with a simple template binding (actually copied from the [knockout website](knockoutjs.com/documentation/template-binding.html "Knockout website")). So, we'll rename flickr.* to dummy.* and simplify it.  Here are the contents of the files now:
 
 Dummy.js:
 
@@ -210,7 +213,7 @@ So, we need to add the following code somewhere:
 
     var parser = viewEngine.parseMarkup;
     viewEngine.parseMarkup = function (markup) {
-        // wrap existing parser in an "unsafe" call to avoid exceptions with dynamic html injection
+        // wrap existing parser in an "unsafe" call
         return MSApp.execUnsafeLocalFunction(function () {
             return parser(markup);
         });
